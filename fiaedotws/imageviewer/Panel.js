@@ -1,6 +1,4 @@
 
-/* Panel */
-
 Ext.define('Ext.ux.fiaedotws.imageviewer.Panel', {
    extend:'Ext.panel.Panel',
    alias:'widget.imageviewer',
