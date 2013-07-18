@@ -1,4 +1,4 @@
-This is a ExtJS Imageviewer Extension.
+This is a ExtJS imageviewer extension.
 
 Just place the entire folder into the examples folder of extjs and open the index.html with a Browser.
 
