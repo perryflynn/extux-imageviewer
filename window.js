@@ -2,19 +2,19 @@ Ext.Loader.setConfig({
     enabled : true,
     paths   : {
         DirectoryListing : 'app',
-        'Ext.ux.fiaedotws.imageviewer': 'fiaedotws/imageviewer'
+        'Ext.ux.fiaedotws': 'fiaedotws'
     }
 });
 Ext.require('*');
 
 Ext.onReady(function(){
-   
+
    var imagelist = [
       'exampleimages/IMG_20130202_193932.jpg',
       'exampleimages/IMG_20130202_203654.jpg',
       'exampleimages/webshelf-snapshot.png'
    ];
-   
+
    Ext.require('Ext.ux.fiaedotws.imageviewer.Panel', function() {
       var win = Ext.create('Ext.window.Window', {
          title:'Imageviewer',
@@ -32,7 +32,7 @@ Ext.onReady(function(){
             }
          ]
       });
-      
+
       win.child('imageviewer').setImages(imagelist);
       win.show();
    });

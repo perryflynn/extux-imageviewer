@@ -4,7 +4,7 @@ Ext.define('Ext.ux.fiaedotws.imageviewer.Panel', {
    alias:'widget.imageviewer',
 
    autoScroll:true,
-   
+
    resizeMode:'fit',
    zoomLevel:100,
    mousedowntime:0,
@@ -18,88 +18,82 @@ Ext.define('Ext.ux.fiaedotws.imageviewer.Panel', {
    panHeight:0,
    orgWidth:0,
    orgHeight:0,
-   
+
    initComponent: function()
    {
+      Ext.tip.QuickTipManager.init();
       var me = this;
-         
-      var zoomlevel = Ext.create('Ext.data.Store', {
-         fields: [
-            { name: 'value', type:'int' }
-         ],
-         data : [
-            { "value":10 },
-            { "value":20 },
-            { "value":30 },
-            { "value":40 },
-            { "value":50 },
-            { "value":60 },
-            { "value":70 },
-            { "value":80 },
-            { "value":90 },
-            { "value":100 },
-            { "value":110 },
-            { "value":120 },
-            { "value":130 },
-            { "value":140 },
-            { "value":150 }
-         ]
-      });
-         
+
       this.bbar = [
          { xtype:'tbfill' },
          {
-            text:'Previous',
+            tooltip:'Previous',
+            iconCls:'iconcls-arrow_left',
             xid:'prev'
          },
          {
-            text:'Next',
+            tooltip:'Next',
+            iconCls:'iconcls-arrow_right',
             xid:'next'
          },
          {
-            text:'Original',
+            tooltip:'Original',
+            iconCls:'iconcls-arrow_out',
             xid:'org'
          },
          {
-            text:'Fit to window',
+            tooltip:'Fit to window',
+            iconCls:'iconcls-arrow_in',
             xid:'fit'
          },
          {
-            text:'Fit vertical',
+            tooltip:'Fit vertical',
+            iconCls:'iconcls-arrow-up-down',
             xid:'fit-v'
          },
          {
-            text:'Fit horizontal',
+            tooltip:'Fit horizontal',
+            iconCls:'iconcls-arrow-left-right',
             xid:'fit-h'
          },
          {
-            xtype:'combobox',
+            tooltip:'Zoom out',
+            iconCls:'iconcls-magifier_zoom_out',
+            xid:'zoom-out'
+         },
+         {
+            xtype:'slider',
             xid:'zoomlevel',
-            valueField:'value',
-            displayField:'value',
-            store:zoomlevel,
-            editable:false,
+            increment: 1,
+            minValue: 10,
+            maxValue: 200,
             value:100,
-            width:80,
-            displayTpl : Ext.create('Ext.XTemplate', '<tpl for=".">', '{value}%', '</tpl>'),
-            listConfig: { 
-               itemTpl: Ext.create('Ext.XTemplate', '', '{value}%', '')
-            }
+            width:200
+         },
+         {
+            xtype:'tbtext',
+            xid:'zoomlevel-text',
+            text:'100%'
+         },
+         {
+            tooltip:'Zoom in',
+            iconCls:'iconcls-magnifier_zoom_in',
+            xid:'zoom-in'
          },
          { xtype:'tbfill' }
       ];
-      
+
       this.items = [
          {
             xtype:'image',
             src:''
          }
       ];
-      
-      
+
+
       me.callParent();
-      
-      
+
+
       me.on('afterrender', this.onImagePanelRendered, this);
       me.on('resize', this.onPanelResized, this);
       me.on('firstimage', this.onFirstImage, this);
@@ -107,36 +101,37 @@ Ext.define('Ext.ux.fiaedotws.imageviewer.Panel', {
       me.on('imagechange', this.onImageChange, this);
       me.child('image').on('afterrender', this.onImageRendered, this);
    },
-   
+
    setImages: function(img) {
       this.images = img;
    },
-   
+
    // Events -----------------------------------------------------------------------------------------
-   
+
    onImagePanelRendered: function() {
       var me = this;
       var bdy = this.body;
       bdy.on('mousedown', this.onImagePanelMouseDown, this);
       bdy.on('mouseup', this.onImagePanelMouseUp, this);
 
-      var tb = this.getDockedItems('toolbar[dock=bottom]')[0];      
+      var tb = this.getDockedItems('toolbar[dock=bottom]')[0];
       Ext.each(tb.query('button'), function(btn) {
          btn.on('click', me.onToolbarButtonClicked, me);
       });
-      
-      tb.child('combobox[xid=zoomlevel]').on('change', this.onZoomlevelChanged, this);
-      tb.child('combobox[xid=zoomlevel]').on('select', this.onZoomlevelSelected, this);
-      
+
+      tb.child('slider[xid=zoomlevel]').on('change', this.onZoomlevelChanged, this);
+      tb.child('slider[xid=zoomlevel]').on('drag', this.onZoomlevelSelected, this);
+      tb.child('slider[xid=zoomlevel]').getEl().on('click', this.onZoomlevelSelected, this);
+
       this.fireEvent('resize');
    },
-   
+
    onPanelResized: function() {
-      this.panWidth = Ext.get(this.body.dom.id).getWidth()-20;
-      this.panHeight = Ext.get(this.body.dom.id).getHeight()-5;
+      this.panWidth = Ext.get(this.body.dom).getWidth()-20;
+      this.panHeight = Ext.get(this.body.dom).getHeight()-20;
       this.resize();
    },
-   
+
    onImagePanelMouseDown: function(e) {
       if(e.button==0) {
          this.mousedowntime = new Date().getTime();
@@ -146,47 +141,47 @@ Ext.define('Ext.ux.fiaedotws.imageviewer.Panel', {
          e.stopEvent();
       }
    },
-   
+
    onImagePanelMouseUp: function(e) {
       if(e.button==0) {
-         
+
          var klicktime = ((new Date().getTime())-this.mousedowntime);
-         
-         if(klicktime<180 && (this.targetX-this.sourceX)<5 && 
-            (this.targetX-this.sourceX)>-5 && (this.targetY-this.sourceY)<5 && 
-            (this.targetY-this.sourceY)>-5) 
+
+         if(klicktime<180 && (this.targetX-this.sourceX)<5 &&
+            (this.targetX-this.sourceX)>-5 && (this.targetY-this.sourceY)<5 &&
+            (this.targetY-this.sourceY)>-5)
          {
             this.next();
          }
-         
+
          this.body.un("mousemove", this.onBodyMouseMove, this);
-         
+
       }
       this.mousedowntime = 0;
    },
-   
+
    onBodyMouseMove: function(e) {
       this.scrollBy((this.targetX-e.browserEvent.clientX), (this.targetY-e.browserEvent.clientY));
       this.targetX = e.browserEvent.clientX;
       this.targetY = e.browserEvent.clientY;
    },
-   
+
    onImageChange: function() {
       var tb = this.getDockedItems('toolbar[dock=bottom]')[0];
       tb.child('button[xid=next]').enable();
       tb.child('button[xid=prev]').enable();
    },
-   
+
    onFirstImage: function() {
       var tb = this.getDockedItems('toolbar[dock=bottom]')[0];
       tb.child('button[xid=prev]').disable();
    },
-   
+
    onLastImage: function() {
       var tb = this.getDockedItems('toolbar[dock=bottom]')[0];
       tb.child('button[xid=next]').disable();
    },
-   
+
    onToolbarButtonClicked: function(btn) {
       if(btn.xid=="fit") {
          this.resizeMode = "fit";
@@ -209,18 +204,27 @@ Ext.define('Ext.ux.fiaedotws.imageviewer.Panel', {
       if(btn.xid=="prev") {
          this.prev();
       }
+      if(btn.xid=="zoom-in") {
+         this.zoomIn(10);
+      }
+      if(btn.xid=="zoom-out") {
+         this.zoomOut(10);
+      }
    },
-   
+
    onZoomlevelChanged: function(combo, newval) {
       this.zoomLevel=newval;
-   },
-   
-   onZoomlevelSelected: function(combo, records) {
-      this.resizeMode="zoom";
-      this.zoomLevel = records[0].raw.value;
+      var tb = this.getDockedItems('toolbar[dock=bottom]')[0];
+      var tbtext = tb.child('tbtext[xid=zoomlevel-text]');
+      tbtext.setText(this.zoomLevel+'%');
       this.imageZoom(this.zoomLevel);
    },
-   
+
+   onZoomlevelSelected: function(slider) {
+      console.log('zoom!');
+      this.resizeMode="zoom";
+   },
+
    onImageRendered: function(img) {
       var me = this;
       img.el.on({
@@ -239,10 +243,10 @@ Ext.define('Ext.ux.fiaedotws.imageviewer.Panel', {
       });
       this.prev();
    },
-   
-   
+
+
    // Methods ----------------------------------------------------------------------------------------
-   
+
    resize: function() {
       if(this.resizeMode=="fit") {
          this.imageFit();
@@ -258,36 +262,35 @@ Ext.define('Ext.ux.fiaedotws.imageviewer.Panel', {
       }
       this.imageZoom(this.zoomLevel);
    },
-   
+
    imageFit: function() {
       var pwidth = this.panWidth;
       var pheight = this.panHeight;
       var iwidth = this.orgWidth;
       var iheight = this.orgHeight;
-      
+
       if ((iwidth * pheight / iheight) > pwidth) {
          this.imageFitHorizontal();
       } else {
          this.imageFitVertical();
       }
    },
-   
+
    imageFitHorizontal: function() {
       var pwidth = this.panWidth;
       var pheight = this.panHeight;
       var iwidth = this.orgWidth;
       var iheight = this.orgHeight;
-      
+
       if(iwidth>=pwidth) {
-         var perc = Math.round(((100/iwidth*pwidth)*100))/100;
+         var perc = (100/iwidth*pwidth);
          var tb = this.getDockedItems('toolbar[dock=bottom]')[0];
-         tb.child('combobox[xid=zoomlevel]').setValue(perc);
-         this.imageZoom(this.zoomLevel);
+         tb.child('slider[xid=zoomlevel]').setValue(perc);
       } else {
          this.imageFitNot();
       }
    },
-   
+
    imageFitVertical: function(changemode) {
       var pwidth = this.panWidth;
       var pheight = this.panHeight;
@@ -295,34 +298,64 @@ Ext.define('Ext.ux.fiaedotws.imageviewer.Panel', {
       var iheight = this.orgHeight;
 
       if(iheight>=pheight) {
-         var perc = Math.round(((100/iheight*pheight)*100)-150)/100;
+         var perc = (100/iheight*pheight);
          var tb = this.getDockedItems('toolbar[dock=bottom]')[0];
-         tb.child('combobox[xid=zoomlevel]').setValue(perc);
-         this.imageZoom(this.zoomLevel);
+         tb.child('slider[xid=zoomlevel]').setValue(perc);
       } else {
          this.imageFitNot();
       }
    },
-   
+
    imageZoom: function(level) {
       var iwidth = this.orgWidth;
       var iheight = this.orgHeight;
-      this.child('image').getEl().dom.style.width=parseInt((iwidth/100*level))+"px";
-      this.child('image').getEl().dom.style.height=parseInt((iheight/100*level))+"px";
+      this.child('image').getEl().dom.style.width = parseInt((iwidth/100*level))+"px";
+      this.child('image').getEl().dom.style.height = parseInt((iheight/100*level))+"px";
    },
-   
+
+   zoomIn: function(interval) {
+      this.resizeMode="zoom";
+      var tb = this.getDockedItems('toolbar[dock=bottom]')[0];
+      var slider = tb.child('slider[xid=zoomlevel]');
+      var min = slider.minValue;
+      var max = slider.maxValue;
+      var current = slider.getValue();
+
+      var target = current+interval;
+      if(target>max) {
+         target = max;
+      }
+
+      slider.setValue(target);
+   },
+
+   zoomOut: function(interval) {
+      this.resizeMode="zoom";
+      var tb = this.getDockedItems('toolbar[dock=bottom]')[0];
+      var slider = tb.child('slider[xid=zoomlevel]');
+      var min = slider.minValue;
+      var max = slider.maxValue;
+      var current = slider.getValue();
+
+      var target = current-interval;
+      if(target>max) {
+         target = max;
+      }
+
+      slider.setValue(target);
+   },
+
    imageFitNot: function(changemode) {
       var tb = this.getDockedItems('toolbar[dock=bottom]')[0];
-      tb.child('combobox[xid=zoomlevel]').setValue(100);
-      this.imageZoom(this.zoomLevel);
+      tb.child('slider[xid=zoomlevel]').setValue(100);
    },
-   
+
    setImage: function(img) {
       var ip = this.child('image');
       ip.setLoading('Load '+img+'...');
       ip.setSrc(img);
    },
-   
+
    next: function() {
       if(this.images[(this.imageindex+1)]) {
          this.imageindex++;
@@ -334,7 +367,7 @@ Ext.define('Ext.ux.fiaedotws.imageviewer.Panel', {
          }
       }
    },
-   
+
    prev: function() {
       if(this.images[(this.imageindex-1)]) {
          this.imageindex--;
@@ -345,8 +378,8 @@ Ext.define('Ext.ux.fiaedotws.imageviewer.Panel', {
             this.fireEvent('firstimage');
          }
       }
-   },
-   
+   }
+
 
 
 });
