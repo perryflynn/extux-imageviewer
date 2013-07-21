@@ -34,6 +34,7 @@ Ext.onReady(function(){
       });
 
       win.child('imageviewer').setImages(imagelist);
+      win.child('imageviewer').setCurrentImage('exampleimages/IMG_20130202_203654.jpg');
       win.show();
    });
 

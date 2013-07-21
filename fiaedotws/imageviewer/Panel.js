@@ -73,6 +73,8 @@ Ext.define('Ext.ux.fiaedotws.imageviewer.Panel', {
          {
             xtype:'tbtext',
             xid:'zoomlevel-text',
+            width:40,
+            style:'text-align:right;',
             text:'100%'
          },
          {
@@ -104,6 +106,13 @@ Ext.define('Ext.ux.fiaedotws.imageviewer.Panel', {
 
    setImages: function(img) {
       this.images = img;
+   },
+
+   setCurrentImage: function(img) {
+      var index = this.images.indexOf(img);
+      if(index>-1) {
+         this.imageindex = (index+1);
+      }
    },
 
    // Events -----------------------------------------------------------------------------------------
@@ -221,7 +230,6 @@ Ext.define('Ext.ux.fiaedotws.imageviewer.Panel', {
    },
 
    onZoomlevelSelected: function(slider) {
-      console.log('zoom!');
       this.resizeMode="zoom";
    },
 
@@ -235,7 +243,9 @@ Ext.define('Ext.ux.fiaedotws.imageviewer.Panel', {
             me.orgHeight = Ext.get(ele).getHeight();
             me.resize();
             me.fireEvent('imageloaded');
-            me.child('image').setLoading(false);
+            if(ele.src!="") {
+               me.setLoading(false);
+            }
          },
          error: function (evt, ele, opts) {
 
@@ -352,7 +362,7 @@ Ext.define('Ext.ux.fiaedotws.imageviewer.Panel', {
 
    setImage: function(img) {
       var ip = this.child('image');
-      ip.setLoading('Load '+img+'...');
+      this.setLoading('Loading...');
       ip.setSrc(img);
    },
 
@@ -362,6 +372,9 @@ Ext.define('Ext.ux.fiaedotws.imageviewer.Panel', {
          this.setImage(this.images[this.imageindex]);
          this.fireEvent('imagechange');
          this.fireEvent('nextimage');
+         if(this.imageindex<=0) {
+            this.fireEvent('firstimage');
+         }
          if((this.images.length-1)<=this.imageindex) {
             this.fireEvent('lastimage');
          }
@@ -376,6 +389,9 @@ Ext.define('Ext.ux.fiaedotws.imageviewer.Panel', {
          this.fireEvent('previousimage');
          if(this.imageindex<=0) {
             this.fireEvent('firstimage');
+         }
+         if((this.images.length-1)<=this.imageindex) {
+            this.fireEvent('lastimage');
          }
       }
    }
